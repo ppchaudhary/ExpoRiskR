@@ -1,0 +1,10 @@
+^\.github$
+^.*\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^doc$
+^Meta$
+^ExpoRiskR\.BiocCheck$
+^run_bioc_checks\.R$
+^run_bioc_checks\.sh$
+^scripts$

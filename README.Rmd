@@ -1,0 +1,25 @@
+---
+output: github_document
+---
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+# ExpoRiskR
+
+Exposure-aware multi-omics risk modeling with Bioconductor-friendly support.
+
+## Quick start
+
+```r
+library(ExpoRiskR)
+
+d <- generate_dummy_exporisk()
+al <- align_omics(d$microbiome, d$metabolome, d$exposures, d$meta, id_col = "sample_id")
+pr <- prep_omics(al$microbiome, al$metabolome, al$exposures)
+str(pr)
+```
+
+## Bioconductor workflow (SummarizedExperiment)
+
+See the vignette: `vignettes/exporiskr-intro.Rmd`.

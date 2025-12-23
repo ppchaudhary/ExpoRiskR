@@ -1,0 +1,45 @@
+Package: ExpoRiskR
+Type: Package
+Title: Exposure-Aware Multi-Omics Risk Modeling
+Version: 0.99.0
+Authors@R: c(
+    person("Prem Prashant", "Chaudhary",
+           email = "chaudharyp2@nih.gov",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-3467-8608"))
+ )
+Description: ExpoRiskR provides tools for exposure-aware multi-omics risk modeling
+    in translational and environmental health studies. The package aligns sample
+    identifiers across exposure and multi-omics blocks, performs lightweight
+    preprocessing, and fits exposure-adjusted association models to build
+    interpretable microbe–metabolite networks. It also computes simple exposure
+    perturbation summaries and generates publication-ready visualizations.
+    Workflows support both matrix-based inputs and SummarizedExperiment objects.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+URL: https://github.com/ppchaudhary/ExpoRiskR
+BugReports: https://github.com/ppchaudhary/ExpoRiskR/issues
+Imports:
+    stats,
+    ggplot2,
+    igraph,
+    SummarizedExperiment,
+    S4Vectors
+Suggests:
+    BiocStyle,
+    BiocCheck,
+    knitr,
+    rmarkdown,
+    withr,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+biocViews:
+    Software,
+    Network,
+    SystemsBiology,
+    Metabolomics,
+    Microbiome,
+    Regression
