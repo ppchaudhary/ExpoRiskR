@@ -18,7 +18,7 @@ Description: ExpoRiskR provides tools for exposure-aware multi-omics risk modeli
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+RoxygenNote: 7.3.2
 URL: https://github.com/ppchaudhary/ExpoRiskR
 BugReports: https://github.com/ppchaudhary/ExpoRiskR/issues
 Imports:
