@@ -1,75 +1,60 @@
 ---
-title: "ExpoRiskR: Exposure-aware Multi-Omics Risk Modeling"
-author: "Prem Prashant Chaudhary"
-package: ExpoRiskR
-output:
-  BiocStyle::html_document:
-    toc: true
-    toc_depth: 3
+title: "ExpoRiskR: Exposure-aware multi-omics integration in Bioconductor"
+output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{ExpoRiskR: Exposure-aware Multi-Omics Risk Modeling}
+  %\VignetteIndexEntry{ExpoRiskR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  message = FALSE,
-  warning = FALSE,
-  fig.width = 8,
-  fig.height = 5,
-  dpi = 96
+library(ExpoRiskR)
+library(BiocStyle)
+```
+
+# Abstract
+
+Environmental and lifestyle exposures play a central role in shaping host-associated biological systems, including the microbiome and metabolome. Integrative analysis of multi-omics data together with exposure information is therefore essential for understanding disease risk and environmental health mechanisms. However, many existing multi-omics integration tools focus on correlation or latent factor discovery without explicitly accounting for exposure variables.
+
+**ExpoRiskR** is a Bioconductor package designed for exposure-aware multi-omics integration, providing standardized workflows for aligning, preprocessing, and analyzing microbiome, metabolomics, and exposure data. The package emphasizes interoperability with Bioconductor data structures, particularly the `SummarizedExperiment` class, enabling seamless integration with existing Bioconductor workflows. ExpoRiskR supports reproducible and interpretable analysis of exposure-adjusted cross-omics associations, making it especially suitable for exposome, environmental epidemiology, and disease onset studies.
+
+# Introduction and Motivation
+
+High-throughput profiling technologies have enabled the simultaneous measurement of multiple molecular layers, such as the microbiome and metabolome, across large cohorts. In parallel, advances in exposure science have made it possible to quantify environmental and lifestyle factors that influence biological systems. Integrating these heterogeneous data types remains challenging due to differences in scale, structure, and confounding by exposures.
+
+Most multi-omics integration approaches aim to identify shared variation or discriminative features across omics layers. While powerful, these methods often do not explicitly incorporate exposure variables into the integration framework, making it difficult to disentangle intrinsic biological relationships from exposure-driven effects.
+
+ExpoRiskR was developed to address this gap by providing a coherent workflow to align samples across multiple omics layers and exposure metadata, preprocess heterogeneous data in a consistent manner, and enable downstream analysis of cross-omics associations in the context of measured exposures.
+
+# Why Bioconductor?
+
+ExpoRiskR is implemented within the Bioconductor ecosystem to leverage its mature infrastructure for high-throughput biological data analysis. Bioconductor provides standardized data containers, rigorous software review, and strong guarantees of interoperability and reproducibility.
+
+A key design principle of ExpoRiskR is native support for the `SummarizedExperiment` class. By operating directly on `SummarizedExperiment` objects, ExpoRiskR integrates naturally with existing Bioconductor workflows and can be combined with other Bioconductor packages without ad-hoc data transformations.
+
+# Related Bioconductor Packages and Comparison
+
+Several Bioconductor packages address multi-omics data integration, each with a distinct methodological focus.
+
+- **mixOmics / DIABLO** focuses on supervised and unsupervised multiblock integration for feature selection and classification but does not explicitly adjust for exposure variables.
+- **MOFA2** uses latent factor models to capture shared sources of variation across omics datasets, providing powerful dimensionality reduction but limited direct interpretability in exposure-aware contexts.
+- **MultiAssayExperiment** provides a flexible data container for managing multiple assays but does not perform integration or association analysis itself.
+
+In contrast, ExpoRiskR emphasizes exposure-aware and interpretable integration, aiming to identify biologically meaningful cross-omics relationships that persist after accounting for measured exposures.
+
+# Using ExpoRiskR with SummarizedExperiment Objects
+
+ExpoRiskR natively supports `SummarizedExperiment` objects through dedicated helper functions, enabling direct integration with Bioconductor workflows.
+
+## Creating and Aligning SummarizedExperiment Inputs
+
+```{r se-align}
+set.seed(7)
+d <- generate_dummy_exporisk(
+  n = 12, p_micro = 5, p_metab = 6, p_expo = 3
 )
 
-# Use a single seed for reproducibility across chunks.
-set.seed(1)
-```
-
-# Overview
-
-`ExpoRiskR` provides tools for exposure-aware multi-omics risk modeling in translational
-and environmental health studies.
-
-This vignette demonstrates a compact, end-to-end workflow on simulated data:
-
-- simulate exposure + multi-omics blocks
-- align sample identifiers across blocks
-- preprocess blocks
-- build an exposure-adjusted microbe--metabolite network
-- generate six user-facing figures
-
-To keep vignette build time low on Bioconductor build servers, we use modest settings
-(e.g., limited `max_pairs`, small bootstrap count, and a relaxed FDR threshold). Users can
-increase these parameters for real analyses.
-
-# Load package
-
-```{r}
-library(ExpoRiskR)
-```
-
-# 1. Simulate example data
-
-We generate a small toy dataset consisting of:
-
-- `E`: exposures (continuous covariates)
-- `X`: microbiome-like positive features
-- `Y`: metabolome-like positive features
-- `outcome`: binary phenotype
-
-```{r}
-d <- generate_dummy_exporisk(seed = 1)
-str(d, max.level = 1)
-```
-
-# 2. Align and preprocess
-
-## 2.1 Align sample IDs
-
-Alignment ensures that all blocks have the same samples in the same order.
-
-```{r}
-al <- align_omics(
+aligned <- align_omics_se(
   microbiome = d$microbiome,
   metabolome = d$metabolome,
   exposures  = d$exposures,
@@ -77,148 +62,22 @@ al <- align_omics(
   id_col     = "sample_id",
   strict     = TRUE
 )
+
+aligned$se_microbiome
+aligned$se_metabolome
 ```
 
-## 2.2 Preprocess blocks
+## Preprocessing SummarizedExperiment-based Data
 
-Preprocessing returns numeric matrices with consistent rownames:
-
-- `X`: samples × microbes
-- `Y`: samples × metabolites
-- `E`: samples × exposures
-
-```{r}
-pr <- prep_omics(al$microbiome, al$metabolome, al$exposures)
-
-X <- pr$X
-Y <- pr$Y
-E <- pr$E
-
-outcome <- d$meta$outcome
-names(outcome) <- d$meta$sample_id
-
-c(
-  n_samples = nrow(X),
-  n_microbes = ncol(X),
-  n_metabolites = ncol(Y),
-  n_exposures = ncol(E)
-)
+```{r se-prep}
+processed <- prep_omics_se(aligned)
+processed
 ```
 
-# 3. Build an exposure-adjusted network
+## Integration with Bioconductor Workflows
 
-## 3.1 Model definition
+Because ExpoRiskR operates on `SummarizedExperiment` objects, users can seamlessly integrate it with other Bioconductor packages for downstream analysis, including differential testing, visualization, or additional statistical modeling.
 
-For each microbe--metabolite pair, the package fits an exposure-adjusted regression model:
+# Summary
 
-\[
-\text{metabolite} \sim \text{microbe} + \text{exposures} (+ \text{covariates})
-\]
-
-Edges represent microbe--metabolite associations *after adjusting for exposures*.
-The resulting graph is bipartite: nodes are microbes and metabolites (exposures are not nodes).
-
-## 3.2 Fit network
-
-To keep runtime low in a vignette, we test a limited number of pairs (`max_pairs`)
-and use a relaxed FDR threshold so an illustrative network is typically non-empty.
-
-```{r}
-net <- build_exposure_network(
-  X = X, Y = Y, E = E,
-  fdr = 0.8,
-  max_pairs = 1500,
-  seed = 1
-)
-
-nrow(net$edges)
-```
-
-# 4. Visualizations
-
-## 4.1 Exposure-adjusted microbe--metabolite network
-
-Edge width reflects the magnitude of the estimated association (|beta|), while edge color
-indicates sign (positive vs. negative). Layout weights use |beta| for robustness.
-
-```{r fig.cap="Figure 1: Exposure-adjusted microbe--metabolite network. Nodes represent microbes and metabolites (bipartite graph). Edges represent microbe effects on metabolites after adjusting for exposures; edge width scales with |beta| and color indicates sign."}
-plot_exposure_network(net)
-```
-
-## 4.2 Exposure ranking
-
-The exposure ranking summarizes which exposure variables appear most influential, based on
-their contribution to exposure-adjusted association patterns.
-
-```{r fig.cap="Figure 2: Exposure ranking. Exposures are ordered by their aggregate perturbation score computed from exposure-adjusted microbe--metabolite associations in the simulated dataset."}
-scores <- exposure_perturbation_score(
-  X = X, Y = Y, E = E,
-  fdr = 0.8,
-  max_pairs = 1500,
-  seed = 1
-)
-
-print(plot_exposure_ranking(scores, top_n = 15))
-```
-
-## 4.3 Network stability
-
-Stability assesses how reproducible the inferred edges are under resampling.
-We use a small number of bootstrap replicates for vignette speed.
-
-```{r fig.cap="Figure 3: Network stability under bootstrap resampling. For vignette speed, a small number of bootstrap replicates is used; increase `n_boot` for more stable estimates in real analyses."}
-print(plot_network_stability(
-  X = X, Y = Y, E = E,
-  n_boot = 8,
-  fdr = 0.8,
-  max_pairs = 1000,
-  seed = 1
-))
-```
-
-## 4.4 Risk ROC curve
-
-The ROC curve illustrates discrimination performance for a simple risk model derived from
-the exposure-adjusted associations.
-
-```{r fig.cap="Figure 4: Risk ROC curve for a simple risk model derived from exposure-adjusted associations. This is a demonstration on simulated data; results should not be interpreted as biological findings."}
-print(plot_risk_roc(
-  X = X, Y = Y, E = E,
-  outcome = outcome,
-  edges = net$edges,
-  top_edges = 80
-))
-```
-
-## 4.5 Exposure feature importance
-
-This plot summarizes exposure variables that are most associated with the simulated outcome
-under a simple risk modeling step. This is intended as a lightweight illustration for users.
-
-```{r fig.cap="Figure 5: Exposure feature importance for the simulated outcome. This is a lightweight illustration on simulated data; increase sample size and use domain-specific covariates for real analyses."}
-print(plot_feature_importance(
-  E = E,
-  outcome = outcome,
-  top_n = 15
-))
-```
-
-## 4.6 Individual risk profile
-
-This plot shows a per-sample view of the most influential exposure features for one subject.
-
-```{r fig.cap="Figure 6: Individual risk profile for a single sample (based on exposures). The plot highlights the top exposure features contributing to the sample's risk score in the simulated dataset."}
-sid <- rownames(E)[1]
-print(plot_individual_risk_profile(
-  sample_id = sid,
-  E = E,
-  outcome = outcome,
-  top_n = 12
-))
-```
-
-# Session information
-
-```{r}
-sessionInfo()
-```
+ExpoRiskR provides a Bioconductor-native framework for exposure-aware multi-omics integration with a strong emphasis on interpretability and reproducibility. By supporting `SummarizedExperiment` objects and aligning with existing Bioconductor workflows, the package enables robust investigation of exposure-driven biological mechanisms in environmental health and disease studies.
