@@ -1,7 +1,7 @@
 Package: ExpoRiskR
 Type: Package
 Title: Exposure-Aware Multi-Omics Risk Modeling
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: c(
     person("Prem Prashant", "Chaudhary",
            email = "chaudharyp2@nih.gov",
