@@ -17,16 +17,19 @@
     stop(sprintf("'%s' is NULL.", name), call. = FALSE)
   }
   
-  m <- tryCatch(
-    as.matrix(x),
-    error = function(e) {
-      stop(sprintf("'%s' cannot be coerced to a matrix.", name), call. = FALSE)
-    }
-  )
-  
-  suppressWarnings(storage.mode(m) <- "numeric")
-  
-  if (anyNA(m)) {
+  m <- as.matrix(x)
+  if (!is.matrix(m)) {
+    stop(sprintf("'%s' cannot be coerced to a matrix.", name), call. = FALSE)
+  }
+  had_warning <- FALSE
+  withCallingHandlers({
+    storage.mode(m) <- "numeric"
+  }, warning = function(w) {
+    had_warning <- TRUE
+    invokeRestart("muffleWarning")
+  })
+
+  if (isTRUE(had_warning) || anyNA(m)) {
     warning(
       sprintf("'%s' contains non-numeric values that became NA.", name),
       call. = FALSE

@@ -26,7 +26,8 @@ Imports:
     ggplot2,
     igraph,
     SummarizedExperiment,
-    S4Vectors
+    S4Vectors,
+    utils
 Suggests:
     BiocStyle,
     BiocCheck,

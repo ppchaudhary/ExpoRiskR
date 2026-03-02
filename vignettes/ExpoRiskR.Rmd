@@ -85,7 +85,7 @@ E <- prepped$E
 
 net <- build_exposure_network(
   X = X, Y = Y, E = E,
-  fdr = 0.8,        # relaxed for vignette speed / non-empty illustration
+  fdr = 0.8, # relaxed for vignette speed / non-empty illustration
   max_pairs = 1500,
   seed = 1
 )
@@ -147,3 +147,9 @@ Because ExpoRiskR operates on `SummarizedExperiment` objects, users can seamless
 # Summary
 
 ExpoRiskR provides a Bioconductor-native framework for exposure-aware multi-omics integration with a strong emphasis on interpretability and reproducibility. By supporting `SummarizedExperiment` objects and aligning with existing Bioconductor workflows, the package enables robust investigation of exposure-driven biological mechanisms in environmental health and disease studies.
+
+# Session information
+
+```{r}
+sessionInfo()
+```

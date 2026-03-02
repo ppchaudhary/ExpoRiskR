@@ -90,18 +90,14 @@ plot_exposure_network <- function(net,
   w_layout[!is.finite(w_layout)] <- 1
   w_layout[w_layout <= 0] <- 1
   
-  coords <- tryCatch(
-    {
-      # layout_with_fr supports weights; passing positive weights avoids error
-      lay_fun(g, weights = w_layout)
-    },
-    error = function(e) {
-      # fall back to unweighted layout if the chosen layout doesn't accept weights
-      lay_fun(g)
-    }
-  )
-  
-  # ---- Save if requested ----
+  # Some igraph layouts accept a 'weights' argument, others do not.
+  # To avoid using tryCatch (BiocCheck NOTE), only pass weights to known layouts.
+  if (identical(layout, "layout_with_fr") || identical(layout, "layout_with_kk")) {
+    coords <- lay_fun(g, weights = w_layout)
+  } else {
+    coords <- lay_fun(g)
+  }
+# ---- Save if requested ----
   if (!is.null(file)) {
     grDevices::png(filename = file, width = width, height = height, units = "in", res = dpi)
     on.exit(grDevices::dev.off(), add = TRUE)
